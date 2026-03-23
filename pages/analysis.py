@@ -641,7 +641,7 @@ def _run_analysis(valid_files: list, tmp_dir: Path) -> dict:
 
         results[mol_name] = mol_data
 
-    progress.progress(100, text="✅  Done")
+    progress.progress(100, text=":material/check_circle: Done")
     status.empty()
     return results
 
@@ -661,10 +661,10 @@ def _display_results(results: dict) -> None:
     st.header("Results")
 
     for mol_name, mol_data in results.items():
-        with st.expander(f"🧬  {mol_name}", expanded=True):
+        with st.expander(f":material/hub:  {mol_name}", expanded=True):
 
             # 2D topology
-            _subsection("🗺️", "2D Molecular Topology")
+            _subsection(":material/map:", "2D Molecular Topology")
             if mol_data.get("html_2d"):
                 components.html(mol_data["html_2d"], height=700, scrolling=True)
             elif mol_data.get("html_2d_warning"):
@@ -673,7 +673,7 @@ def _display_results(results: dict) -> None:
                 st.info("2D viewer unavailable (RDKit required).")
 
             # Conformational landscape
-            _subsection("📈", "Conformational Landscape")
+            _subsection(":material/scatter_plot:", "Conformational Landscape")
             if mol_data.get("plotly_fig") is not None:
                 st.plotly_chart(
                     mol_data["plotly_fig"],
@@ -687,14 +687,14 @@ def _display_results(results: dict) -> None:
                 )
 
             # 3D viewer — one tab per solvent
-            _subsection("🔬", "3D Conformer Viewer")
+            _subsection(":material/3d_rotation:", "3D Conformer Viewer")
             solvents_3d = [
                 (sol, sd)
                 for sol, sd in mol_data["solvents"].items()
                 if sd.get("html_3d")
             ]
             if solvents_3d:
-                tabs = st.tabs([f"🧪  {sol}" for sol, _ in solvents_3d])
+                tabs = st.tabs([f":material/water_drop: {sol}" for sol, _ in solvents_3d])
                 for tab, (sol, sd) in zip(tabs, solvents_3d):
                     with tab:
                         components.html(sd["html_3d"], height=740, scrolling=False)
@@ -707,12 +707,12 @@ def _display_results(results: dict) -> None:
                         st.warning(f"[{sol}]  {w}")
 
             # Summary TSV
-            _subsection("📋", "Summary Table")
+            _subsection(":material/table_view:", "Summary Table")
             if mol_data.get("tsv_df") is not None:
                 df = mol_data["tsv_df"]
                 st.dataframe(df, use_container_width=True, hide_index=True)
                 st.download_button(
-                    label="⬇️  Download TSV",
+                    label=":material/download: Download TSV",
                     data=df.to_csv(sep="\t", index=False).encode("utf-8"),
                     file_name=f"{mol_name}.tsv",
                     mime="text/tab-separated-values",
@@ -724,11 +724,11 @@ def _display_results(results: dict) -> None:
                 st.info("Summary table unavailable.")
 
             # ZIP of all CSVs
-            _subsection("📦", "Download All CSVs")
+            _subsection(":material/folder_zip:", "Download All CSVs")
             try:
                 zip_bytes = _make_zip(mol_data)
                 st.download_button(
-                    label="⬇️  Download all CSVs (ZIP)",
+                    label=":material/download: Download all CSVs (ZIP)",
                     data=zip_bytes,
                     file_name=f"{mol_name}_results.zip",
                     mime="application/zip",
