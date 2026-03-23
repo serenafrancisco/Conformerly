@@ -50,7 +50,7 @@ st.markdown("""
 #   st.image("cover.png", use_container_width=True)
 # once you have a cover image.
 
-st.title("About Conformerly")
+st.title("Welcome to Conformerly")
 st.caption("Conformational ensemble analysis · Rgyr · 3D-PSA · IMHB · π–π stacking")
 st.markdown("<br><br>", unsafe_allow_html=True)
 
