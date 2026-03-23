@@ -134,24 +134,6 @@ st.markdown("""
     font-size: 0.86rem;
     font-family: monospace;
 }
-.mol-sub {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    opacity: 0.55;
-    margin: 1.4rem 0 0.5rem 0;
-}
-.mol-sub::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.2;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -165,7 +147,7 @@ with st.sidebar:
     st.caption("Rgyr and 3D-PSA are always computed.")
 
     st.checkbox("Intramolecular H-bonds (IMHB)", key="do_imhb")
-    st.checkbox("Aromatic π–π Stacking",          key="do_pi")
+    st.checkbox("Aromatic π–π Stacking",         key="do_pi")
 
     st.divider()
     st.subheader("Parameter Settings")
@@ -310,7 +292,7 @@ with st.sidebar:
 
     # ── Reset ─────────────────────────────────────────────────────────────────
     st.divider()
-    if st.button("↩  Reset to Defaults", use_container_width=True, type="secondary"):
+    if st.button("Reset to Defaults", icon=":material/refresh:", use_container_width=True, type="secondary"):
         _reset_to_defaults()
         st.rerun()
 
@@ -319,9 +301,6 @@ with st.sidebar:
 # MAIN PAGE — HEADER
 # ══════════════════════════════════════════════════════════════════════════════
 
-# TODO: replace the banner below with:
-#   st.image("cover.png", use_container_width=True)
-# once you have your cover image.
 st.markdown("""
 <div class="cover-banner">
   <span class="cover-wordmark">CONFORMERLY</span>
@@ -383,7 +362,7 @@ for bad in format_errors:
 run_clicked = False
 if valid_files:
     st.markdown("")
-    run_clicked = st.button(":material/rocket_launch: Run Analysis", type="primary")
+    run_clicked = st.button("Run Analysis", icon=":material/rocket_launch:", type="primary")
 elif uploaded_files and not valid_files:
     st.error("No valid files to process — please fix the naming errors shown above.")
 else:
@@ -651,17 +630,14 @@ def _run_analysis(valid_files: list, tmp_dir: Path) -> dict:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _subsection(icon: str, label: str) -> None:
-    st.markdown(
-        f'<div class="mol-sub">{icon}&nbsp;{label}</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"##### {icon} {label}")
 
 
 def _display_results(results: dict) -> None:
     st.header("Results")
 
     for mol_name, mol_data in results.items():
-        with st.expander(f":material/hub:  {mol_name}", expanded=True):
+        with st.expander(mol_name, icon=":material/hub:", expanded=True):
 
             # 2D topology
             _subsection(":material/map:", "2D Molecular Topology")
@@ -712,7 +688,8 @@ def _display_results(results: dict) -> None:
                 df = mol_data["tsv_df"]
                 st.dataframe(df, use_container_width=True, hide_index=True)
                 st.download_button(
-                    label=":material/download: Download TSV",
+                    label="Download TSV",
+                    icon=":material/download:",
                     data=df.to_csv(sep="\t", index=False).encode("utf-8"),
                     file_name=f"{mol_name}.tsv",
                     mime="text/tab-separated-values",
@@ -728,7 +705,8 @@ def _display_results(results: dict) -> None:
             try:
                 zip_bytes = _make_zip(mol_data)
                 st.download_button(
-                    label=":material/download: Download all CSVs (ZIP)",
+                    label="Download all CSVs (ZIP)",
+                    icon=":material/download:",
                     data=zip_bytes,
                     file_name=f"{mol_name}_results.zip",
                     mime="application/zip",
