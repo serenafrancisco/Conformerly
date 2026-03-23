@@ -94,7 +94,7 @@ st.markdown("""
 2. Upload one or more multi-conformer **MOL2** files named
    `<molecule_name>_<solvent>.mol2` (*e.g.* `ARV110_H2O.mol2`).
 3. Configure analysis parameters in the sidebar.
-4. Click **🚀 Run Analysis** and explore the results.
+4. Click **:material/rocket_launch: Run Analysis** and explore the results.
 """)
 
 # ── Call to action ────────────────────────────────────────────────────────────
