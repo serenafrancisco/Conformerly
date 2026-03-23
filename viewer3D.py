@@ -437,8 +437,12 @@ def generate_html(scene: dict, stats: dict, rdkit_props: dict,
   <span class="badge">3D Conformer</span>
   <div style="flex:1"></div>
 
-  <button class="dl-btn" id="btnBg" style="width:auto; padding:4px 8px; font-size:16px;" title="Toggle Background">🌗</button>
-  <button class="dl-btn" id="btnShot" style="width:auto; padding:4px 8px; font-size:16px;" title="Take Screenshot">📷</button>
+  <button class="dl-btn" id="btnBg" style="width:auto; padding:4px 8px; font-size:16px;" title="Toggle Background">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+  </button>
+  <button class="dl-btn" id="btnShot" style="width:auto; padding:4px 8px; font-size:16px;" title="Take Screenshot">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+  </button>
 
   <div class="toggle-group" style="margin-left:8px;">
     <label class="toggle"><input type="checkbox" id="toggleHB" checked><span class="slider"></span></label>
@@ -583,7 +587,7 @@ function drawSurface() {{
     colorfunc: function(atom) {{
       const e = (atom && atom.properties && atom.properties.exposure !== undefined) ? atom.properties.exposure : 0.5;
       const col = exposureColor(e);
-      const m = col.match(/rgb\\((\\d+),(\\d+),(\\d+)\\)/);
+      const m = col.match(/rgb\((\d+),(\d+),(\d+)\)/);
       if (m) return new $3Dmol.Color(parseInt(m[1]) / 255, parseInt(m[2]) / 255, parseInt(m[3]) / 255);
       return new $3Dmol.Color(0.8, 0.8, 0.8);
     }}
@@ -634,7 +638,7 @@ function updatePanel(idx) {{
       <div class="prop-item wide"><span class="prop-label">Formula</span><span class="prop-value">${{PROPS.molecular_formula}}</span></div>
       <div class="prop-item"><span class="prop-label">MW (Da)</span><span class="prop-value">${{PROPS.molecular_weight}}</span></div>
       <div class="prop-item"><span class="prop-label">cLogP</span><span class="prop-value">${{PROPS.logP}}</span></div>
-      <div class="prop-item"><span class="prop-label">TPSA (\\u00C5\\u00B2)</span><span class="prop-value">${{PROPS.TPSA}}</span></div>
+      <div class="prop-item"><span class="prop-label">TPSA (\u00C5\u00B2)</span><span class="prop-value">${{PROPS.TPSA}}</span></div>
       <div class="prop-item"><span class="prop-label">nRotB</span><span class="prop-value">${{PROPS.n_rotatable_bonds}}</span></div>
       <div class="prop-item"><span class="prop-label">HBD</span><span class="prop-value">${{PROPS.n_HBD}}</span></div>
       <div class="prop-item"><span class="prop-label">HBA</span><span class="prop-value">${{PROPS.n_HBA}}</span></div>
@@ -646,8 +650,8 @@ function updatePanel(idx) {{
 
   if (rg.rgyr_all !== undefined || psa.psa3d_sasa !== undefined) {{
     html += `<div class="section"><div class="section-title">Shape &amp; Polarity &mdash; conformer #${{idx+1}}</div><div class="prop-grid">`;
-    if (rg.rgyr_all !== undefined) html += `<div class="prop-item"><span class="prop-label">Rgyr (all)</span><span class="prop-value">${{rg.rgyr_all}} \\u00C5</span></div><div class="prop-item"><span class="prop-label">Rgyr (heavy)</span><span class="prop-value">${{rg.rgyr_heavy}} \\u00C5</span></div>`;
-    if (psa.psa3d_sasa !== undefined) html += `<div class="prop-item"><span class="prop-label">3D PSA (SASA)</span><span class="prop-value">${{psa.psa3d_sasa}} \\u00C5\\u00B2</span></div><div class="prop-item"><span class="prop-label">3D PSA (mol)</span><span class="prop-value">${{psa.psa3d_molsurf}} \\u00C5\\u00B2</span></div><div class="prop-item"><span class="prop-label">SASA total</span><span class="prop-value">${{psa.sasa_total}} \\u00C5\\u00B2</span></div><div class="prop-item"><span class="prop-label">Molsurf total</span><span class="prop-value">${{psa.molsurf_total}} \\u00C5\\u00B2</span></div><div class="prop-item"><span class="prop-label">Polar atoms</span><span class="prop-value">${{psa.n_polar_atoms}}</span></div><div class="prop-item"><span class="prop-label">Polar frac (SASA)</span><span class="prop-value">${{psa.sasa_total > 0 ? (100 * psa.psa3d_sasa / psa.sasa_total).toFixed(1) : 0}}%</span></div>`;
+    if (rg.rgyr_all !== undefined) html += `<div class="prop-item"><span class="prop-label">Rgyr (all)</span><span class="prop-value">${{rg.rgyr_all}} \u00C5</span></div><div class="prop-item"><span class="prop-label">Rgyr (heavy)</span><span class="prop-value">${{rg.rgyr_heavy}} \u00C5</span></div>`;
+    if (psa.psa3d_sasa !== undefined) html += `<div class="prop-item"><span class="prop-label">3D PSA (SASA)</span><span class="prop-value">${{psa.psa3d_sasa}} \u00C5\u00B2</span></div><div class="prop-item"><span class="prop-label">3D PSA (mol)</span><span class="prop-value">${{psa.psa3d_molsurf}} \u00C5\u00B2</span></div><div class="prop-item"><span class="prop-label">SASA total</span><span class="prop-value">${{psa.sasa_total}} \u00C5\u00B2</span></div><div class="prop-item"><span class="prop-label">Molsurf total</span><span class="prop-value">${{psa.molsurf_total}} \u00C5\u00B2</span></div><div class="prop-item"><span class="prop-label">Polar atoms</span><span class="prop-value">${{psa.n_polar_atoms}}</span></div><div class="prop-item"><span class="prop-label">Polar frac (SASA)</span><span class="prop-value">${{psa.sasa_total > 0 ? (100 * psa.psa3d_sasa / psa.sasa_total).toFixed(1) : 0}}%</span></div>`;
     html += `</div><div style="margin-top:10px; font-size:10px; color:var(--text-dim);">Surface toggle colours atom exposure (SASA):</div><div class="surf-legend"><span class="surf-legend-label">Buried</span><div class="surf-bar"></div><span class="surf-legend-label">Exposed</span></div></div>`;
   }}
 
@@ -657,7 +661,7 @@ function updatePanel(idx) {{
   html += `<div class="section"><div class="section-title"><span class="hb-dot"></span>Intramolecular H-Bonds &mdash; #${{idx+1}} (${{hbs.length}})</div>`;
   if (hbs.length > 0) {{
     html += `<table class="int-table"><tr><th>D&ndash;H&middot;&middot;&middot;A</th><th>d(H&middot;&middot;&middot;A)</th><th>&ang;DHA</th><th>&ang;XAH</th><th>Sep</th><th>Range</th></tr>`;
-    hbs.forEach(hb => html += `<tr><td>${{hb.donor_name}}&ndash;${{hb.hydrogen_name}}&middot;&middot;&middot;${{hb.acceptor_name}}</td><td>${{hb.dist_HA.toFixed(2)}} \\u00C5</td><td>${{hb.angle_DHA.toFixed(1)}}&deg;</td><td>${{hb.angle_XAH.toFixed(1)}}&deg;</td><td>${{hb.bond_sep}}</td><td><span class="${{hb.range_class === 'short-range' ? 'tag-short' : hb.range_class === 'medium-range' ? 'tag-medium' : 'tag-long'}}">${{hb.range_class}}</span></td></tr>`);
+    hbs.forEach(hb => html += `<tr><td>${{hb.donor_name}}&ndash;${{hb.hydrogen_name}}&middot;&middot;&middot;${{hb.acceptor_name}}</td><td>${{hb.dist_HA.toFixed(2)}} \u00C5</td><td>${{hb.angle_DHA.toFixed(1)}}&deg;</td><td>${{hb.angle_XAH.toFixed(1)}}&deg;</td><td>${{hb.bond_sep}}</td><td><span class="${{hb.range_class === 'short-range' ? 'tag-short' : hb.range_class === 'medium-range' ? 'tag-medium' : 'tag-long'}}">${{hb.range_class}}</span></td></tr>`);
     html += `</table>`;
   }} else {{ html += `<div class="empty-msg">No H-bonds detected in this conformer.</div>`; }}
   html += `</div>`;
@@ -665,7 +669,7 @@ function updatePanel(idx) {{
   html += `<div class="section"><div class="section-title"><span class="pi-dot"></span>&pi;&ndash;&pi; Stacking &mdash; #${{idx+1}} (${{pis.length}})</div>`;
   if (pis.length > 0) {{
     html += `<table class="int-table"><tr><th>Patches</th><th>Class</th><th>d(c&middot;&middot;&middot;c)</th><th>&ang;planes</th></tr>`;
-    pis.forEach(pi => html += `<tr><td>${{pi.patch_a.replace('ring_system_','RS').replace('.patch_','p')}} &harr; ${{pi.patch_b.replace('ring_system_','RS').replace('.patch_','p')}}</td><td><span class="${{pi.pi_class === 'face-to-face' ? 'tag-ff' : 'tag-ef'}}">${{pi.pi_class}}</span></td><td>${{pi.centroid_dist.toFixed(2)}} \\u00C5</td><td>${{pi.plane_angle.toFixed(1)}}&deg;</td></tr>`);
+    pis.forEach(pi => html += `<tr><td>${{pi.patch_a.replace('ring_system_','RS').replace('.patch_','p')}} &harr; ${{pi.patch_b.replace('ring_system_','RS').replace('.patch_','p')}}</td><td><span class="${{pi.pi_class === 'face-to-face' ? 'tag-ff' : 'tag-ef'}}">${{pi.pi_class}}</span></td><td>${{pi.centroid_dist.toFixed(2)}} \u00C5</td><td>${{pi.plane_angle.toFixed(1)}}&deg;</td></tr>`);
     html += `</table>`;
   }} else {{ html += `<div class="empty-msg">No &pi;&ndash;&pi; stacking detected.</div>`; }}
   html += `</div>`;
