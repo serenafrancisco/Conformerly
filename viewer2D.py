@@ -216,7 +216,7 @@ def generate_html(svg_content: str, stats: dict, rdkit_props: dict, donors_accep
   .rs-atom-tag {{ font-family: var(--mono); font-size: 10px; font-weight: 500; padding: 1px 4px; border-radius: 3px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-dim); }}
   .rdkit-badge {{ display: inline-block; font-size: 8px; font-weight: 600; padding: 1px 5px; border-radius: 3px; margin-left: 6px; background: rgba(96,165,250,0.12); color: var(--accent); border: 1px solid rgba(96,165,250,0.2); font-family: var(--mono); }}
   .zoom-controls {{ position: absolute; bottom: 14px; left: 14px; display: flex; gap: 4px; z-index: 10; }}
-  .zoom-btn {{ width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--mono); transition: background 0.15s; }}
+  .zoom-btn {{ width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--mono); transition: background 0.15s; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }}
   .zoom-btn:hover {{ background: var(--surface2); }}
   #tooltip {{ position: absolute; display: none; background: rgba(12,15,19,0.92); color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-family: var(--mono); font-weight: 500; pointer-events: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 1px solid var(--border); white-space: nowrap; }}
   #tooltip .sybyl {{ color: var(--accent); }}
@@ -246,10 +246,12 @@ def generate_html(svg_content: str, stats: dict, rdkit_props: dict, donors_accep
   <div class="viewport" id="viewport">
     <div class="svg-container" id="svg-container">{svg_content}</div>
     <div class="zoom-controls">
-      <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
-      <button class="zoom-btn" id="zoomOut" title="Zoom out">&minus;</button>
-      <button class="zoom-btn" id="zoomReset" title="Reset view" style="font-size:12px;">&#8634;</button>
-      <button class="zoom-btn" id="btnScreenshot" title="Download PNG Screenshot">📷</button>
+      <button class="zoom-btn" id="zoomIn" title="Zoom in"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="zoom-btn" id="zoomOut" title="Zoom out"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <button class="zoom-btn" id="zoomReset" title="Reset view"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button class="zoom-btn" id="btnScreenshot" title="Download PNG Screenshot">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+      </button>
     </div>
   </div>
   <div class="panel" id="panel"></div>
@@ -358,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {{
       <div class="prop-item wide"><span class="prop-label">Formula</span><span class="prop-value">${{PROPS.molecular_formula}}</span></div>
       <div class="prop-item"><span class="prop-label">MW (Da)</span><span class="prop-value">${{PROPS.molecular_weight}}</span></div>
       <div class="prop-item"><span class="prop-label">cLogP</span><span class="prop-value">${{PROPS.logP}}</span></div>
-      <div class="prop-item"><span class="prop-label">TPSA (\\u00C5\\u00B2)</span><span class="prop-value">${{PROPS.TPSA}}</span></div>
+      <div class="prop-item"><span class="prop-label">TPSA (\u00C5\u00B2)</span><span class="prop-value">${{PROPS.TPSA}}</span></div>
       <div class="prop-item"><span class="prop-label">nRotB</span><span class="prop-value">${{PROPS.n_rotatable_bonds}}</span></div>
       <div class="prop-item"><span class="prop-label">HBD</span><span class="prop-value">${{PROPS.n_HBD}}</span></div>
       <div class="prop-item"><span class="prop-label">HBA</span><span class="prop-value">${{PROPS.n_HBA}}</span></div>
@@ -368,7 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {{
   html += `<div class="section"><div class="section-title">Atom Census</div><div class="prop-grid"><div class="prop-item"><span class="prop-label">Total atoms</span><span class="prop-value">${{STATS.n_atoms}}</span></div><div class="prop-item"><span class="prop-label">Heavy atoms</span><span class="prop-value">${{STATS.n_heavy_atoms}}</span></div></div></div>`;
   if (DA.donors.length > 0) {{
     html += `<div class="section overlay-section da-section" style="display:none;"><div class="section-title">H-Bond Donors (${{DA.donors.length}}) &mdash; <span style="color:var(--amber);">&bull;</span> amber halo<span class="rdkit-badge">RDKit</span></div><div class="da-list">`;
-    DA.donors.forEach(d => html += `<span class="da-tag donor" title="${{d.type}} \\u00b7 ${{d.n_H}}H">${{d.name}}</span>`);
+    DA.donors.forEach(d => html += `<span class="da-tag donor" title="${{d.type}} \u00b7 ${{d.n_H}}H">${{d.name}}</span>`);
     html += `</div></div>`;
   }}
   if (DA.acceptors.length > 0) {{
