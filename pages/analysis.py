@@ -292,9 +292,13 @@ with st.sidebar:
 
     # ── Reset ─────────────────────────────────────────────────────────────────
     st.divider()
-    if st.button("Reset to Defaults", icon=":material/refresh:", use_container_width=True, type="secondary"):
-        _reset_to_defaults()
-        st.rerun()
+    st.button(
+        "Reset to Defaults", 
+        icon=":material/refresh:", 
+        use_container_width=True, 
+        type="secondary",
+        on_click=_reset_to_defaults
+    )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
