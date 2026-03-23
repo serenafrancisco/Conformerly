@@ -203,7 +203,7 @@ with st.sidebar:
         if not st.session_state.get("do_imhb", True):
             st.caption("Enable IMHB above to use these parameters.")
         else:
-            st.caption("🔵 Defaults match Schrödinger Maestro H-bond criteria.")
+            st.caption("Defaults match Schrödinger Maestro H-bond criteria.")
             st.number_input(
                 "Max H···A distance (Å)",
                 min_value=1.5, max_value=5.0,
@@ -268,7 +268,7 @@ with st.sidebar:
         if not st.session_state.get("do_pi", True):
             st.caption("Enable π–π stacking above to use these parameters.")
         else:
-            st.caption("🔵 Defaults match Schrödinger Maestro π–π criteria.")
+            st.caption("Defaults match Schrödinger Maestro π–π criteria.")
             st.number_input(
                 "Face-to-face max centroid dist (Å)",
                 min_value=1.0, max_value=10.0,
@@ -383,7 +383,7 @@ for bad in format_errors:
 run_clicked = False
 if valid_files:
     st.markdown("")
-    run_clicked = st.button("🚀  Run Analysis", type="primary")
+    run_clicked = st.button(":material/rocket_launch: Run Analysis", type="primary")
 elif uploaded_files and not valid_files:
     st.error("No valid files to process — please fix the naming errors shown above.")
 else:
