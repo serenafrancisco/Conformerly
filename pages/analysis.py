@@ -339,13 +339,13 @@ st.markdown("<br><br>", unsafe_allow_html=True)
 # FILE UPLOAD & VALIDATION
 # ══════════════════════════════════════════════════════════════════════════════
 
+st.markdown("<h3 style='margin-bottom:0'>Upload Input Files</h3>", unsafe_allow_html=True)
 st.markdown(
-    "<h3 style='margin-bottom:0'>Upload Input Files</h3>"
-    "Upload one or more multi-conformer <b>MOL2</b> files. "
-    "Files <b>must</b> follow the naming convention: <code>&lt;molecule_name&gt;_&lt;solvent&gt;.mol2</code><br>"
-    "Examples of recognized formats: <code>ARV110_H2O.mol2</code>, <code>ARV-110_CHCl3.mol2</code>, <code>ARV_110_DMSO.mol2</code>.<br><br>",
-    unsafe_allow_html=True
+    "Upload one or more multi-conformer **MOL2** files. "
+    "Files **must** follow the naming convention: `<molecule_name>_<solvent>.mol2`  \n"
+    "Examples of recognized formats: `ARV110_H2O.mol2`, `ARV-110_CHCl3.mol2`, `ARV_110_DMSO.mol2`."
 )
+
 st.caption(
     "Multiple solvents for the same molecule are grouped automatically."
 )
