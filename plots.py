@@ -257,8 +257,8 @@ def conformational_landscape_interactive(df: pd.DataFrame) -> go.Figure:
         ),
     ]
 
-    menu_style = dict(
-        bgcolor="white", bordercolor="#CCCCCC", borderwidth=1, font=dict(size=12),
+menu_style = dict(
+        borderwidth=1, font=dict(size=12),
         direction="down", showactive=True, yanchor="top", y=1.12,
     )
 
@@ -269,14 +269,13 @@ def conformational_landscape_interactive(df: pd.DataFrame) -> go.Figure:
         ],
         width=_PLOT_PX, height=_PLOT_PX, margin=dict(l=65, r=80, t=90, b=65),
         xaxis=dict(
-            title=AXIS_LABELS.get(x_default, x_default), showgrid=True, gridcolor="#EEEEEE",
-            zeroline=False, mirror=True, showline=True, linecolor="#BBBBBB",
+            title=AXIS_LABELS.get(x_default, x_default), showgrid=True,
+            zeroline=False, mirror=True, showline=True,
         ),
         yaxis=dict(
-            title=AXIS_LABELS.get(RGYR, RGYR), showgrid=True, gridcolor="#EEEEEE",
-            zeroline=False, mirror=True, showline=True, linecolor="#BBBBBB",
+            title=AXIS_LABELS.get(RGYR, RGYR), showgrid=True,
+            zeroline=False, mirror=True, showline=True,
         ),
-        plot_bgcolor="#FFFFFF", paper_bgcolor="#FFFFFF",
         legend=dict(
             title="Solvent",
             orientation="v",
