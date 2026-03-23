@@ -1,6 +1,6 @@
 """plots.py
 
-Plotting module for Chameleons v1.2.1.
+Plotting module for Conformerly v1.0.0.
 """
 
 from __future__ import annotations
@@ -257,7 +257,7 @@ def conformational_landscape_interactive(df: pd.DataFrame) -> go.Figure:
         ),
     ]
 
-menu_style = dict(
+    menu_style = dict(
         borderwidth=1, font=dict(size=12),
         direction="down", showactive=True, yanchor="top", y=1.12,
     )
