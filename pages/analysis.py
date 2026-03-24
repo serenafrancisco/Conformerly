@@ -419,6 +419,9 @@ def _run_analysis(valid_files: list, tmp_dir: Path) -> dict:
         tsv_path, tsv_df, plotly_fig, html_2d, [optional warning strings]
     """
     ss = st.session_state
+    do_imhb_val = ss.get("do_imhb", True)
+    do_pi_val   = ss.get("do_pi", True)
+    show_viewers = do_imhb_val or do_pi_val
 
     mol_files: Dict[str, List] = defaultdict(list)
     for uf in valid_files:
@@ -488,7 +491,7 @@ def _run_analysis(valid_files: list, tmp_dir: Path) -> dict:
                 sd["warnings"].append(f"3D PSA failed: {exc}")
 
             # IMHB — optional
-            if ss.get("do_imhb", True):
+            if do_imhb_val:
                 try:
                     detail, summary, hbond_ids = run_imhb(
                         blocks=blocks,
@@ -505,7 +508,7 @@ def _run_analysis(valid_files: list, tmp_dir: Path) -> dict:
                     sd["warnings"].append(f"IMHB failed: {exc}")
 
             # π–π — optional
-            if ss.get("do_pi", True):
+            if do_pi_val:
                 try:
                     outs = run_pi(
                         blocks=blocks,
@@ -522,36 +525,38 @@ def _run_analysis(valid_files: list, tmp_dir: Path) -> dict:
                 except Exception as exc:
                     sd["warnings"].append(f"π–π stacking failed: {exc}")
 
-            # 3D viewer HTML
-            try:
-                from viewer3D import (
-                    build_ensemble_scene,
-                    build_stats              as _bs3,
-                    generate_html            as _gh3,
-                    compute_rdkit_properties as _rp3,
-                    enumerate_donors_acceptors as _da3,
-                )
-                scene = build_ensemble_scene(blocks)
-                if scene:
-                    atoms_d = parse_atoms_and_bonds(blocks[0].text)
-                    stats3  = _bs3(atoms_d, len(blocks))
-                    rdkp3   = _rp3(blocks[0].text)
-                    da3     = _da3(atoms_d, blocks[0].text)
-                    out_files_data = []
-                    for csv_p in sd["csvs"]:
-                        try:
-                            out_files_data.append({
-                                "name":    csv_p.name,
-                                "content": csv_p.read_text(encoding="utf-8"),
-                            })
-                        except Exception:
-                            pass
-                    sd["html_3d"] = _gh3(
-                        scene, stats3, rdkp3, da3, out_prefix,
-                        output_files=out_files_data,
+            # 3D viewer HTML - skip completely if both interactions disabled
+            if show_viewers:
+                try:
+                    from viewer3D import (
+                        build_ensemble_scene,
+                        build_stats              as _bs3,
+                        generate_html            as _gh3,
+                        compute_rdkit_properties as _rp3,
+                        enumerate_donors_acceptors as _da3,
                     )
-            except Exception as exc:
-                sd["warnings"].append(f"3D viewer failed: {exc}")
+                    scene = build_ensemble_scene(blocks, do_imhb=do_imhb_val, do_pi=do_pi_val)
+                    if scene:
+                        atoms_d = parse_atoms_and_bonds(blocks[0].text)
+                        stats3  = _bs3(atoms_d, len(blocks))
+                        rdkp3   = _rp3(blocks[0].text)
+                        # Feed empty dicts if disabled to save cycles
+                        da3     = _da3(atoms_d, blocks[0].text) if do_imhb_val else {"donors": [], "acceptors": []}
+                        out_files_data = []
+                        for csv_p in sd["csvs"]:
+                            try:
+                                out_files_data.append({
+                                    "name":    csv_p.name,
+                                    "content": csv_p.read_text(encoding="utf-8"),
+                                })
+                            except Exception:
+                                pass
+                        sd["html_3d"] = _gh3(
+                            scene, stats3, rdkp3, da3, out_prefix,
+                            output_files=out_files_data,
+                        )
+                except Exception as exc:
+                    sd["warnings"].append(f"3D viewer failed: {exc}")
 
             mol_data["solvents"][solvent] = sd
 
@@ -574,53 +579,58 @@ def _run_analysis(valid_files: list, tmp_dir: Path) -> dict:
                 pass
 
         # ── 2D topology viewer ─────────────────────────────────────────────
-        try:
-            from viewer2D import (
-                generate_2d_svg,
-                build_stats                as _bs2,
-                generate_html              as _gh2,
-                compute_rdkit_properties   as _rp2,
-                enumerate_donors_acceptors as _da2,
-                detect_ring_systems_for_viz,
-                _HAS_RDKIT                 as _2d_rdkit,
-            )
-            if _2d_rdkit and file_list:
-                first_mol2   = mol_dir / file_list[0][0].name
-                first_blocks = split_mol2_blocks(first_mol2)
-                if first_blocks:
-                    blk     = first_blocks[0]
-                    atoms_d = parse_atoms_and_bonds(blk.text)
-                    if atoms_d:
-                        from rdkit import Chem as _Chem
-                        rdkit_mol = _Chem.MolFromMol2Block(
-                            blk.text, sanitize=True, removeHs=False
-                        )
-                        rdkp2    = _rp2(rdkit_mol) if rdkit_mol else {}
-                        da2      = _da2(atoms_d, blk.text)
-                        ring_sys = detect_ring_systems_for_viz(blk.text)
-                        rs_info  = [
-                            {
-                                "label":      rs["label"],
-                                "n_atoms":    rs["n_atoms"],
-                                "n_patches":  rs["n_patches"],
-                                "color":      rs["color"],
-                                "atom_names": rs.get("atom_names", []),
-                                "patches":    rs.get("patches", []),
-                            }
-                            for rs in ring_sys
-                        ]
-                        stats2 = _bs2(atoms_d, blk, len(first_blocks))
-                        svg    = generate_2d_svg(
-                            blk.text,
-                            {d["id"] for d in da2["donors"]},
-                            {a["id"] for a in da2["acceptors"]},
-                            ring_sys,
-                        )
-                        mol_data["html_2d"] = _gh2(
-                            svg, stats2, rdkp2, da2, rs_info, mol_name
-                        )
-        except Exception as exc:
-            mol_data["html_2d_warning"] = f"2D viewer failed: {exc}"
+        # Skip completely if both interactions disabled
+        if show_viewers:
+            try:
+                from viewer2D import (
+                    generate_2d_svg,
+                    build_stats                as _bs2,
+                    generate_html              as _gh2,
+                    compute_rdkit_properties   as _rp2,
+                    enumerate_donors_acceptors as _da2,
+                    detect_ring_systems_for_viz,
+                    _HAS_RDKIT                 as _2d_rdkit,
+                )
+                if _2d_rdkit and file_list:
+                    first_mol2   = mol_dir / file_list[0][0].name
+                    first_blocks = split_mol2_blocks(first_mol2)
+                    if first_blocks:
+                        blk     = first_blocks[0]
+                        atoms_d = parse_atoms_and_bonds(blk.text)
+                        if atoms_d:
+                            from rdkit import Chem as _Chem
+                            rdkit_mol = _Chem.MolFromMol2Block(
+                                blk.text, sanitize=True, removeHs=False
+                            )
+                            rdkp2    = _rp2(rdkit_mol) if rdkit_mol else {}
+                            
+                            # Feed empty data to geometry/renderer if disabled
+                            da2      = _da2(atoms_d, blk.text) if do_imhb_val else {"donors": [], "acceptors": []}
+                            ring_sys = detect_ring_systems_for_viz(blk.text) if do_pi_val else []
+                            
+                            rs_info  = [
+                                {
+                                    "label":      rs["label"],
+                                    "n_atoms":    rs["n_atoms"],
+                                    "n_patches":  rs["n_patches"],
+                                    "color":      rs["color"],
+                                    "atom_names": rs.get("atom_names", []),
+                                    "patches":    rs.get("patches", []),
+                                }
+                                for rs in ring_sys
+                            ]
+                            stats2 = _bs2(atoms_d, blk, len(first_blocks))
+                            svg    = generate_2d_svg(
+                                blk.text,
+                                {d["id"] for d in da2["donors"]},
+                                {a["id"] for a in da2["acceptors"]},
+                                ring_sys,
+                            )
+                            mol_data["html_2d"] = _gh2(
+                                svg, stats2, rdkp2, da2, rs_info, mol_name
+                            )
+            except Exception as exc:
+                mol_data["html_2d_warning"] = f"2D viewer failed: {exc}"
 
         results[mol_name] = mol_data
 
@@ -640,17 +650,20 @@ def _subsection(icon: str, label: str) -> None:
 def _display_results(results: dict) -> None:
     st.header("Results")
 
+    show_viewers = st.session_state.get("do_imhb", True) or st.session_state.get("do_pi", True)
+
     for mol_name, mol_data in results.items():
         with st.expander(mol_name, icon=":material/hub:", expanded=True):
 
-            # 2D topology
-            _subsection(":material/map:", "2D Molecular Topology")
-            if mol_data.get("html_2d"):
-                components.html(mol_data["html_2d"], height=700, scrolling=True)
-            elif mol_data.get("html_2d_warning"):
-                st.warning(mol_data["html_2d_warning"])
-            else:
-                st.info("2D viewer unavailable (RDKit required).")
+            if show_viewers:
+                # 2D topology
+                _subsection(":material/map:", "2D Molecular Topology")
+                if mol_data.get("html_2d"):
+                    components.html(mol_data["html_2d"], height=700, scrolling=True)
+                elif mol_data.get("html_2d_warning"):
+                    st.warning(mol_data["html_2d_warning"])
+                else:
+                    st.info("2D viewer unavailable (RDKit required).")
 
             # Conformational landscape
             _subsection(":material/scatter_plot:", "Conformational Landscape")
@@ -666,25 +679,26 @@ def _display_results(results: dict) -> None:
                     "no 3D-PSA / Rgyr columns found."
                 )
 
-            # 3D viewer — one tab per solvent
-            _subsection(":material/3d_rotation:", "3D Conformer Viewer")
-            solvents_3d = [
-                (sol, sd)
-                for sol, sd in mol_data["solvents"].items()
-                if sd.get("html_3d")
-            ]
-            if solvents_3d:
-                tabs = st.tabs([f":material/water_drop: {sol}" for sol, _ in solvents_3d])
-                for tab, (sol, sd) in zip(tabs, solvents_3d):
-                    with tab:
-                        components.html(sd["html_3d"], height=740, scrolling=False)
+            if show_viewers:
+                # 3D viewer — one tab per solvent
+                _subsection(":material/3d_rotation:", "3D Conformer Viewer")
+                solvents_3d = [
+                    (sol, sd)
+                    for sol, sd in mol_data["solvents"].items()
+                    if sd.get("html_3d")
+                ]
+                if solvents_3d:
+                    tabs = st.tabs([f":material/water_drop: {sol}" for sol, _ in solvents_3d])
+                    for tab, (sol, sd) in zip(tabs, solvents_3d):
+                        with tab:
+                            components.html(sd["html_3d"], height=740, scrolling=False)
+                            for w in sd.get("warnings", []):
+                                st.warning(w)
+                else:
+                    st.info("3D viewer unavailable.")
+                    for sol, sd in mol_data["solvents"].items():
                         for w in sd.get("warnings", []):
-                            st.warning(w)
-            else:
-                st.info("3D viewer unavailable.")
-                for sol, sd in mol_data["solvents"].items():
-                    for w in sd.get("warnings", []):
-                        st.warning(f"[{sol}]  {w}")
+                            st.warning(f"[{sol}]  {w}")
 
             # Summary TSV
             _subsection(":material/table_view:", "Summary Table")
