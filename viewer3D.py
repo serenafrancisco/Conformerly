@@ -126,7 +126,7 @@ def enumerate_donors_acceptors(atoms: Dict[int, dict], block_text: str) -> dict:
     return {"donors": donors, "acceptors": acceptors}
 
 
-def build_ensemble_scene(blocks: List[Mol2Block]) -> dict:
+def build_ensemble_scene(blocks: List[Mol2Block], do_imhb: bool = True, do_pi: bool = True) -> dict:
     if not blocks:
         return {}
 
@@ -170,7 +170,7 @@ def build_ensemble_scene(blocks: List[Mol2Block]) -> dict:
 
     rdkit_donor_ids = None
     rdkit_acceptor_ids = None
-    if _HAS_RDKIT and _IMHB_HAS_RDKIT:
+    if do_imhb and _HAS_RDKIT and _IMHB_HAS_RDKIT:
         try:
             rdkit_donor_ids, rdkit_acceptor_ids = identify_donors_acceptors_rdkit(blocks[0].text)
         except Exception:
@@ -188,59 +188,67 @@ def build_ensemble_scene(blocks: List[Mol2Block]) -> dict:
         conformers.append(coords)
         names.append(blk.name)
 
-        try:
-            hb_rows = find_imhbs(
-                atoms=atoms, max_dist_ha=IMHB_MAX_DIST_HA, min_angle_dha=IMHB_MIN_ANGLE_DHA,
-                min_angle_strict=IMHB_MIN_ANGLE_STRICT, min_bond_separation=IMHB_MIN_BOND_SEPARATION,
-                min_angle_acceptor=IMHB_MIN_ANGLE_ACCEPTOR, rdkit_donor_ids=rdkit_donor_ids, rdkit_acceptor_ids=rdkit_acceptor_ids,
-            )
-            hbonds_json = []
-            for r in hb_rows:
-                h_id = r["hydrogen_id"]
-                a_id = r["acceptor_id"]
-                h_coords = atoms[h_id]["coords"]
-                a_coords = atoms[a_id]["coords"]
-                hbonds_json.append({
-                    "label": r["hb_label"], "donor_name": r["donor_name"], "donor_type": r["donor_type"],
-                    "hydrogen_name": r["hydrogen_name"], "hydrogen_id": h_id, "acceptor_name": r["acceptor_name"],
-                    "acceptor_type": r["acceptor_type"], "acceptor_id": a_id, "donor_id": r["donor_id"],
-                    "dist_HA": round(r["dist_HA"], 3), "dist_DA": round(r.get("dist_DA", float("nan")), 3),
-                    "angle_DHA": round(r["angle_DHA"], 1), "angle_XAH": round(r["angle_XAH"], 1),
-                    "bond_sep": r["bond_separation_D_A"], "range_class": r["distance_range_class"],
-                    "pseudoring_type": r.get("pseudoring_type", ""),
-                    "h_xyz": [round(float(h_coords[0]), 4), round(float(h_coords[1]), 4), round(float(h_coords[2]), 4)],
-                    "a_xyz": [round(float(a_coords[0]), 4), round(float(a_coords[1]), 4), round(float(a_coords[2]), 4)],
-                })
-            hbonds_per_conf.append(hbonds_json)
-        except Exception:
+        if do_imhb:
+            try:
+                hb_rows = find_imhbs(
+                    atoms=atoms, max_dist_ha=IMHB_MAX_DIST_HA, min_angle_dha=IMHB_MIN_ANGLE_DHA,
+                    min_angle_strict=IMHB_MIN_ANGLE_STRICT, min_bond_separation=IMHB_MIN_BOND_SEPARATION,
+                    min_angle_acceptor=IMHB_MIN_ANGLE_ACCEPTOR, rdkit_donor_ids=rdkit_donor_ids, rdkit_acceptor_ids=rdkit_acceptor_ids,
+                )
+                hbonds_json = []
+                for r in hb_rows:
+                    h_id = r["hydrogen_id"]
+                    a_id = r["acceptor_id"]
+                    h_coords = atoms[h_id]["coords"]
+                    a_coords = atoms[a_id]["coords"]
+                    hbonds_json.append({
+                        "label": r["hb_label"], "donor_name": r["donor_name"], "donor_type": r["donor_type"],
+                        "hydrogen_name": r["hydrogen_name"], "hydrogen_id": h_id, "acceptor_name": r["acceptor_name"],
+                        "acceptor_type": r["acceptor_type"], "acceptor_id": a_id, "donor_id": r["donor_id"],
+                        "dist_HA": round(r["dist_HA"], 3), "dist_DA": round(r.get("dist_DA", float("nan")), 3),
+                        "angle_DHA": round(r["angle_DHA"], 1), "angle_XAH": round(r["angle_XAH"], 1),
+                        "bond_sep": r["bond_separation_D_A"], "range_class": r["distance_range_class"],
+                        "pseudoring_type": r.get("pseudoring_type", ""),
+                        "h_xyz": [round(float(h_coords[0]), 4), round(float(h_coords[1]), 4), round(float(h_coords[2]), 4)],
+                        "a_xyz": [round(float(a_coords[0]), 4), round(float(a_coords[1]), 4), round(float(a_coords[2]), 4)],
+                    })
+                hbonds_per_conf.append(hbonds_json)
+            except Exception:
+                hbonds_per_conf.append([])
+        else:
             hbonds_per_conf.append([])
 
-        try:
-            if _HAS_PI:
-                mol = mol_from_mol2_block(blk.text)
-                moieties, patches_by_system = detect_aromatic_ring_systems(mol)
-                pi_rows, _, _ = compute_pair_outputs(mol=mol, moieties=moieties, patches_by_system=patches_by_system, min_bond_sep=1, use_pi_criteria=True, pi_params=pi_params)
-                pi_json = []
-                for r in pi_rows:
-                    pa_label = r.get("patch_a", "")
-                    pb_label = r.get("patch_b", "")
-                    ca = cb = None
-                    for sys_label, plist in patches_by_system.items():
-                        for p in plist:
-                            if p.label == pa_label: ca = _centroid(coords_for_atoms(mol, p.atom_indices)).tolist()
-                            if p.label == pb_label: cb = _centroid(coords_for_atoms(mol, p.atom_indices)).tolist()
-                    if ca and cb:
-                        pi_json.append({
-                            "moiety_a": r.get("moiety_a", ""), "moiety_b": r.get("moiety_b", ""),
-                            "patch_a": pa_label, "patch_b": pb_label, "pi_class": r.get("pi_class", ""),
-                            "centroid_dist": round(float(r.get("patch_centroid_dist_A", 0)), 3),
-                            "plane_angle": round(float(r.get("plane_angle_deg", 0)), 1),
-                            "ca_xyz": [round(float(ca[0]), 4), round(float(ca[1]), 4), round(float(ca[2]), 4)],
-                            "cb_xyz": [round(float(cb[0]), 4), round(float(cb[1]), 4), round(float(cb[2]), 4)],
-                        })
-                pi_per_conf.append(pi_json)
-            else: pi_per_conf.append([])
-        except Exception: pi_per_conf.append([])
+        if do_pi:
+            try:
+                if _HAS_PI:
+                    mol = mol_from_mol2_block(blk.text)
+                    moieties, patches_by_system = detect_aromatic_ring_systems(mol)
+                    pi_rows, _, _ = compute_pair_outputs(mol=mol, moieties=moieties, patches_by_system=patches_by_system, min_bond_sep=1, use_pi_criteria=True, pi_params=pi_params)
+                    pi_json = []
+                    for r in pi_rows:
+                        pa_label = r.get("patch_a", "")
+                        pb_label = r.get("patch_b", "")
+                        ca = cb = None
+                        for sys_label, plist in patches_by_system.items():
+                            for p in plist:
+                                if p.label == pa_label: ca = _centroid(coords_for_atoms(mol, p.atom_indices)).tolist()
+                                if p.label == pb_label: cb = _centroid(coords_for_atoms(mol, p.atom_indices)).tolist()
+                        if ca and cb:
+                            pi_json.append({
+                                "moiety_a": r.get("moiety_a", ""), "moiety_b": r.get("moiety_b", ""),
+                                "patch_a": pa_label, "patch_b": pb_label, "pi_class": r.get("pi_class", ""),
+                                "centroid_dist": round(float(r.get("patch_centroid_dist_A", 0)), 3),
+                                "plane_angle": round(float(r.get("plane_angle_deg", 0)), 1),
+                                "ca_xyz": [round(float(ca[0]), 4), round(float(ca[1]), 4), round(float(ca[2]), 4)],
+                                "cb_xyz": [round(float(cb[0]), 4), round(float(cb[1]), 4), round(float(cb[2]), 4)],
+                            })
+                    pi_per_conf.append(pi_json)
+                else: 
+                    pi_per_conf.append([])
+            except Exception: 
+                pi_per_conf.append([])
+        else:
+            pi_per_conf.append([])
 
         try:
             if _HAS_RGYR:
@@ -708,7 +716,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     blocks = split_mol2_blocks(mol2_path)
     if not blocks: return 1
 
-    scene = build_ensemble_scene(blocks)
+    # When run as a standalone script, defaults to True for both computations
+    scene = build_ensemble_scene(blocks, True, True)
     if not scene: return 1
 
     atoms = parse_atoms_and_bonds(blocks[0].text)
