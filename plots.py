@@ -39,8 +39,8 @@ _PLOT_PX  = 640
 
 # Smart heuristic mapping for common solvents
 _HEURISTIC_COLORS = {
-    "water": "#3b82f6", "h2o": "#3b82f6",          
-    "chcl3": "#eab308", "chloroform": "#eab308",   
+    "water": "#3b82f6", "h2o": "#3b82f6", "wat": "#3b82f6",          
+    "chcl3": "#eab308", "chloroform": "#eab308", "chl": "#eab308",   
     "dmso": "#8b5cf6",                             
     "methanol": "#10b981", "meoh": "#10b981",      
     "ethanol": "#14b8a6", "etoh": "#14b8a6",       

@@ -18,8 +18,9 @@ Two variants are reported per conformer:
     This is the intrinsic polar surface dictated purely by atomic
     radii, independent of solvent probe size.
 
-Polar atoms are defined following Ertl's TPSA convention:
-  N, O, and any H covalently bonded to N or O.
+Polar atoms are defined following the VegaZZ convention:
+  N, O, S, P (polar heavy atoms) and any H NOT covalently bonded to C.
+  Apolar atoms are C and H bonded to C.
 
 The algorithm distributes test points uniformly over each atom's
 expanded sphere (van der Waals radius + probe radius) using a
@@ -138,12 +139,23 @@ def _parse_atoms_and_bonds(block_text: str) -> List[dict]:
 
 
 # ========================================================================
-# Polar atom identification
+# Polar atom identification — VegaZZ convention
+#
+# Polar  : N, O, S, P  +  H not bonded to C
+# Apolar : C           +  H bonded to C
 # ========================================================================
 
-_POLAR_HEAVY: Set[str] = {"N", "O"}
+_POLAR_HEAVY: Set[str] = {"N", "O", "S", "P"}
 
 def _identify_polar_indices(atoms: List[dict]) -> Set[int]:
+    """Return the set of atom indices considered polar under the VegaZZ convention.
+
+    Polar atoms:
+      - Heavy atoms whose element is N, O, S, or P.
+      - Hydrogen atoms that are NOT bonded to a carbon atom.
+        (Equivalently, any H bonded exclusively to N, O, S, P, or other
+        heteroatoms is polar; H bonded to C is apolar.)
+    """
     id_to_idx = {a["id"]: i for i, a in enumerate(atoms)}
     polar: Set[int] = set()
 
@@ -151,11 +163,15 @@ def _identify_polar_indices(atoms: List[dict]) -> Set[int]:
         if a["element"] in _POLAR_HEAVY:
             polar.add(i)
         elif a["element"] == "H":
-            for nb_id in a["bonds"]:
-                nb_idx = id_to_idx.get(nb_id)
-                if nb_idx is not None and atoms[nb_idx]["element"] in _POLAR_HEAVY:
-                    polar.add(i)
-                    break
+            # H is polar unless at least one of its bonds leads to a carbon
+            bonded_to_carbon = any(
+                atoms[id_to_idx[nb_id]]["element"] == "C"
+                for nb_id in a["bonds"]
+                if nb_id in id_to_idx
+            )
+            if not bonded_to_carbon:
+                polar.add(i)
+
     return polar
 
 

@@ -305,10 +305,14 @@ with st.sidebar:
 # MAIN PAGE — HEADER
 # ══════════════════════════════════════════════════════════════════════════════
 
+st.image("figures/logo-banner.png", use_container_width=True)
+
+# ↓ Add this to kill the gap
 st.markdown("""
-<div class="cover-banner">
-  <span class="cover-wordmark">CONFORMERLY</span>
-</div>
+    <style>
+        [data-testid="stImage"] { margin-bottom: -12rem; }
+        h1:first-of-type { margin-top: 0; }
+    </style>
 """, unsafe_allow_html=True)
 
 st.title("Run Analysis")
@@ -316,13 +320,21 @@ st.caption(
     "Conformational ensemble analysis · Rgyr · 3D-PSA · IMHB · π–π stacking"
 )
 st.markdown("<br><br>", unsafe_allow_html=True)
+st.divider()
+st.markdown("<br>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FILE UPLOAD & VALIDATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-st.markdown("<h3 style='margin-bottom:0'>Upload Input Files</h3>", unsafe_allow_html=True)
+st.markdown("""
+    <h3 style='margin-bottom:0; display:flex; align-items:center; gap:8px'>
+        <span class='material-symbols-rounded' style='font-size:1.4rem'>upload</span>
+        Upload Input Files
+    </h3>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+""", unsafe_allow_html=True)
 st.markdown(
     "Upload one or more multi-conformer **MOL2** files. "
     "Files **must** follow the naming convention: `<molecule_name>_<solvent>.mol2`  \n"
@@ -362,6 +374,53 @@ for bad in format_errors:
         f'</div>',
         unsafe_allow_html=True,
     )
+
+st.markdown("""
+    <style>
+    :root {
+        --primary-color: #0079b0 !important;
+    }
+    .stCheckbox label span:first-child {
+        border-color: #0079b0 !important;
+    }
+    .stCheckbox input:checked ~ label span:first-child,
+    .stCheckbox [aria-checked="true"] span:first-child,
+    .stCheckbox label span:first-child[data-checked="true"],
+    .stCheckbox input[type="checkbox"]:checked + label span:first-child,
+    .stCheckbox label:has(input:checked) span:first-child {
+        background-color: #0079b0 !important;
+        border-color: #0079b0 !important;
+    }
+    .stButton button[kind="primary"],
+    .stButton button[data-testid="baseButton-primary"],
+    button[kind="primary"] {
+        background: #0079b0 !important;
+        background-color: #0079b0 !important;
+        color: white !important;
+        border: none !important;
+        font-size: 1.6rem !important;
+        padding: 1.2rem 2rem !important;
+        font-weight: 700 !important;
+    }
+    .stButton button[kind="primary"] p,
+    .stButton button[data-testid="baseButton-primary"] p,
+    button[kind="primary"] p {
+        font-size: 1.6rem !important;
+        font-weight: 700 !important;
+    }
+    .stButton button[kind="primary"] span[data-testid="stIconMaterial"],
+    .stButton button[data-testid="baseButton-primary"] span[data-testid="stIconMaterial"],
+    button[kind="primary"] span[data-testid="stIconMaterial"] {
+        font-size: 1.6rem !important;
+    }
+    .stButton button[kind="primary"]:hover,
+    .stButton button[data-testid="baseButton-primary"]:hover {
+        background: #005f8a !important;
+        background-color: #005f8a !important;
+        color: white !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 run_clicked = False
 if valid_files:
@@ -648,15 +707,19 @@ def _subsection(icon: str, label: str) -> None:
 
 
 def _display_results(results: dict) -> None:
+    from plots_ids import imhb_occurrence_heatmap, pi_occurrence_heatmap
+
     st.header("Results")
 
     show_viewers = st.session_state.get("do_imhb", True) or st.session_state.get("do_pi", True)
+    do_imhb      = st.session_state.get("do_imhb", True)
+    do_pi        = st.session_state.get("do_pi",   True)
 
     for mol_name, mol_data in results.items():
         with st.expander(mol_name, icon=":material/hub:", expanded=True):
 
+            # ── 2D topology ───────────────────────────────────────────────────
             if show_viewers:
-                # 2D topology
                 _subsection(":material/map:", "2D Molecular Topology")
                 if mol_data.get("html_2d"):
                     components.html(mol_data["html_2d"], height=700, scrolling=True)
@@ -664,8 +727,9 @@ def _display_results(results: dict) -> None:
                     st.warning(mol_data["html_2d_warning"])
                 else:
                     st.info("2D viewer unavailable (RDKit required).")
+                st.markdown("<br><br>", unsafe_allow_html=True)
 
-            # Conformational landscape
+            # ── Conformational landscape ──────────────────────────────────────
             _subsection(":material/scatter_plot:", "Conformational Landscape")
             if mol_data.get("plotly_fig") is not None:
                 st.plotly_chart(
@@ -678,9 +742,76 @@ def _display_results(results: dict) -> None:
                     "Scatter plot unavailable — TSV data missing or "
                     "no 3D-PSA / Rgyr columns found."
                 )
+            st.markdown("<br><br>", unsafe_allow_html=True)
 
+            # ── IMHB occurrence heatmap ───────────────────────────────────────
+            if do_imhb:
+                _subsection(":material/key_visualizer:", "IMHB Occurrence")
+                st.caption(
+                    "Binary heatmap of intramolecular hydrogen bonds across all conformers. "
+                    "Rows sorted by descending frequency. Scroll horizontally to see all conformers."
+                )
+                imhb_solvents = []
+                for sol, sd in mol_data["solvents"].items():
+                    for csv_p in sd.get("csvs", []):
+                        p = Path(csv_p)
+                        if p.name.endswith("_hbond_ids.csv"):
+                            imhb_solvents.append((sol, p))
+                            break
+
+                if imhb_solvents:
+                    tabs = st.tabs([f":material/water_drop: {sol}" for sol, _ in imhb_solvents])
+                    for tab, (sol, p) in zip(tabs, imhb_solvents):
+                        with tab:
+                            try:
+                                html, height, legend_df = imhb_occurrence_heatmap(p)
+                                if html:
+                                    components.html(html, height=height + 20, scrolling=False)
+                                    st.caption("Legend")
+                                    st.dataframe(legend_df, use_container_width=True, hide_index=True)
+                                else:
+                                    st.info(f"No IMHBs detected in {sol}.")
+                            except Exception as exc:
+                                st.warning(f"IMHB heatmap failed for {sol}: {exc}")
+                else:
+                    st.info("No IMHB occurrence data available.")
+                st.markdown("<br><br>", unsafe_allow_html=True)
+
+            # ── π–π occurrence heatmap ────────────────────────────────────────
+            if do_pi:
+                _subsection(":material/key_visualizer:", "π–π Stacking Occurrence")
+                st.caption(
+                    "Binary heatmap of aromatic π–π stacking interactions across all conformers. "
+                    "Rows sorted by descending frequency. Scroll horizontally to see all conformers."
+                )
+                pi_solvents = []
+                for sol, sd in mol_data["solvents"].items():
+                    for csv_p in sd.get("csvs", []):
+                        p = Path(csv_p)
+                        if p.name.endswith("_pi_label_ids.csv"):
+                            pi_solvents.append((sol, p))
+                            break
+
+                if pi_solvents:
+                    tabs = st.tabs([f":material/water_drop: {sol}" for sol, _ in pi_solvents])
+                    for tab, (sol, p) in zip(tabs, pi_solvents):
+                        with tab:
+                            try:
+                                html, height, legend_df = pi_occurrence_heatmap(p)
+                                if html:
+                                    components.html(html, height=height + 20, scrolling=False)
+                                    st.caption("Legend")
+                                    st.dataframe(legend_df, use_container_width=True, hide_index=True)
+                                else:
+                                    st.info(f"No π–π stacking detected in {sol}.")
+                            except Exception as exc:
+                                st.warning(f"π–π heatmap failed for {sol}: {exc}")
+                else:
+                    st.info("No π–π stacking occurrence data available.")
+                st.markdown("<br><br>", unsafe_allow_html=True)
+
+            # ── 3D viewer ─────────────────────────────────────────────────────
             if show_viewers:
-                # 3D viewer — one tab per solvent
                 _subsection(":material/3d_rotation:", "3D Conformer Viewer")
                 solvents_3d = [
                     (sol, sd)
@@ -699,9 +830,11 @@ def _display_results(results: dict) -> None:
                     for sol, sd in mol_data["solvents"].items():
                         for w in sd.get("warnings", []):
                             st.warning(f"[{sol}]  {w}")
+                st.markdown("<br><br>", unsafe_allow_html=True)
 
-            # Summary TSV
+            # ── Summary TSV ───────────────────────────────────────────────────
             _subsection(":material/table_view:", "Summary Table")
+            st.markdown("Conformers for all solvents are listed together with their properties.")
             if mol_data.get("tsv_df") is not None:
                 df = mol_data["tsv_df"]
                 st.dataframe(df, use_container_width=True, hide_index=True)
@@ -717,9 +850,22 @@ def _display_results(results: dict) -> None:
                 st.warning(mol_data["tsv_warning"])
             else:
                 st.info("Summary table unavailable.")
+            st.markdown("<br><br>", unsafe_allow_html=True)
 
-            # ZIP of all CSVs
+            # ── ZIP of all CSVs ───────────────────────────────────────────────
             _subsection(":material/folder_zip:", "Download All CSVs")
+            st.markdown('''
+            * **`<molecule_name>.tsv`** — Summary table in TSV format.
+            * **`<molecule_name>_<solvent>_rgyr.csv`** — Detailed Rgyr-related data.
+            * **`<molecule_name>_<solvent>_3dpsa.csv`** — Detailed 3D-PSA-related data.
+            * **`<molecule_name>_<solvent>_hbonds.csv`** — Thorough report on IMHBs.
+            * **`<molecule_name>_<solvent>_hbonds_ids.csv`** — Frequency matrix of IMHBs.
+            * **`<molecule_name>_<solvent>_hbonds_summary.csv`** — Summarized information on IMHBs.
+            * **`<molecule_name>_<solvent>_ar_ring_systems.csv`** — Aromatic rings information and geometry.
+            * **`<molecule_name>_<solvent>_pi_stacking.csv`** — Information on π-π stackings.
+            * **`<molecule_name>_<solvent>_pi_label_ids.csv`** — Frequency matrix of π-π stackings.
+            * **`<molecule_name>_<solvent>_pi_summary.csv`** — Summarized information on π-π stackings.
+            ''')
             try:
                 zip_bytes = _make_zip(mol_data)
                 st.download_button(
@@ -732,7 +878,7 @@ def _display_results(results: dict) -> None:
                 )
             except Exception as exc:
                 st.warning(f"Could not create ZIP archive: {exc}")
-
+            st.markdown("<br><br>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ENTRY POINT

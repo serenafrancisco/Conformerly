@@ -18,36 +18,14 @@ from components.footer import show_footer
 
 # ── Cover banner ──────────────────────────────────────────────────────────────
 
+st.image("figures/logo-banner.png", use_container_width=True)
+
+# ↓ Add this to kill the gap
 st.markdown("""
-<style>
-.cover-banner {
-    width: 100%;
-    height: 190px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-    overflow: hidden;
-    background: var(--background-color, #0a1628);
-    background-image:
-        radial-gradient(ellipse 55% 60% at 15% 55%,
-            rgba(96,165,250,0.08) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 50% at 82% 38%,
-            rgba(167,139,250,0.07) 0%, transparent 70%);
-    box-shadow: 0 6px 30px rgba(0,0,0,0.18);
-}
-.cover-wordmark {
-    font-size: 3.2rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    opacity: 0.07;
-    user-select: none;
-}
-</style>
-<div class="cover-banner">
-  <span class="cover-wordmark">CONFORMERLY</span>
-</div>
+    <style>
+        [data-testid="stImage"] { margin-bottom: -12rem; }
+        h1:first-of-type { margin-top: 0; }
+    </style>
 """, unsafe_allow_html=True)
 
 IMAGES = ROOT / "figures"
@@ -55,16 +33,11 @@ IMAGES = ROOT / "figures"
 st.title("Useful Links")
 st.caption("Papers, resources, and website.")
 
-st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
+st.divider()
+st.markdown("<br>", unsafe_allow_html=True)
 
 
-# ── Website ───────────────────────────────────────────────────────────────────
-
-st.header(":material/language: Check our Website")
-
-st.markdown("##### [MedChemBeyond Lab — Official Website](https://www.cassmedchem.unito.it/)")
-
-st.markdown("<br><br>", unsafe_allow_html=True)
 
 # ── Publications ──────────────────────────────────────────────────────────────
 
@@ -197,5 +170,20 @@ st.markdown("""
 - *Placeholder — add contact information here.*
 """)
 
+st.markdown("<br><br>", unsafe_allow_html=True)
+
+
+# ── Website ───────────────────────────────────────────────────────────────────
+
+st.header(":material/language: Check our Website")
+
+st.markdown("##### [MedChemBeyond Lab — Official Website](https://www.cassmedchem.unito.it/)")
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+
+
+
 
 show_footer(image="figures/footer.png", caption="")
+
+
