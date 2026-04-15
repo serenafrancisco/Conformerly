@@ -152,22 +152,16 @@ for pub in publications:
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 
-# ── Related tools & databases ─────────────────────────────────────────────────
-
-st.header(":material/link: Related Tools & Databases")
-
-st.markdown("""
-- *Placeholder — add related tools or databases here.*
-""")
-
-st.markdown("<br><br>", unsafe_allow_html=True)
-
 # ── Contact ───────────────────────────────────────────────────────────────────
 
 st.header(":material/mail: Contact")
 
 st.markdown("""
-- *Placeholder — add contact information here.*
+##### Serena Francisco — serena.francisco@unito.it
+###### MedChemBeyond Lab (University of Turin)  
+- [Personal GitHub](https://github.com/serenafrancisco)
+- [LinkedIn Profile](https://www.linkedin.com/in/serena-francisco-b82b3222a/)
+- [ORCID](https://orcid.org/0009-0006-3337-2590)
 """)
 
 st.markdown("<br><br>", unsafe_allow_html=True)
@@ -185,5 +179,7 @@ st.markdown("<br><br>", unsafe_allow_html=True)
 
 
 show_footer(image="figures/footer.png", caption="")
+
+
 
 
