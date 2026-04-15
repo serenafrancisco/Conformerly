@@ -105,14 +105,6 @@ st.markdown("""
     opacity: 0.75;
     line-height: 1.4;
 }
-.param-card .param-desc {
-    font-size: 0.80rem;
-    opacity: 0.6;
-    line-height: 1.5;
-    margin-top: 0.4rem;
-    border-top: 1px solid rgba(0, 121, 176, 0.15);
-    padding-top: 0.6rem;
-}
 </style>
 
 <div class="param-grid">
@@ -120,52 +112,21 @@ st.markdown("""
         <div class="badge">Default</div>
         <div class="param-name">Rgyr</div>
         <div class="param-full">Radius of gyration</div>
-        <div class="param-desc">
-            Measures the mass-weighted root-mean-square distance of all atoms from
-            the molecular centroid. A compact, folded conformer yields a low Rgyr;
-            an extended one yields a high value. Used as a proxy for overall
-            molecular size and shape in solution.
-        </div>
     </div>
     <div class="param-card">
         <div class="badge">Default</div>
         <div class="param-name">3D-PSA</div>
         <div class="param-full">Three-dimensional polar surface area (Shrake–Rupley)</div>
-        <div class="param-desc">
-            Computes the solvent-exposed polar surface by distributing test points
-            on each atom's van der Waals sphere via a Fibonacci lattice and
-            counting unburied points on N, O, S, P and their bound hydrogens.
-            Reported both as SASA (probe 1.4 Å) and molecular surface (probe 0 Å).
-        </div>
     </div>
     <div class="param-card">
         <div class="badge optional">Optional</div>
         <div class="param-name">IMHB</div>
         <div class="param-full">Intramolecular hydrogen bonds</div>
-        <div class="param-desc">
-            Detects donor–hydrogen···acceptor contacts within the same molecule
-            using distance and angle thresholds based on Schrödinger Maestro
-            criteria. A stricter angle cutoff is applied for donor–acceptor pairs
-            in close bond proximity to suppress false positives in strained rings.
-            Contacts whose shortest covalent D→A path traverses a bond belonging
-            to a small ring (≤ 8 atoms) are excluded: such proximity is locked by
-            rigid ring planarity and is not conformationally driven. Large rings
-            such as macrocycle backbones are treated as flexible chains and are
-            fully supported.
-        </div>
     </div>
     <div class="param-card">
         <div class="badge optional">Optional</div>
         <div class="param-name">π–π</div>
         <div class="param-full">Aromatic π–π stacking interactions</div>
-        <div class="param-desc">
-            Identifies face-to-face and edge-to-face (T-shaped) stacking between
-            individual aromatic rings using centroid–centroid distance and inter-plane
-            angle cutoffs. Directly bonded rings (biphenyl-type) are excluded via a
-            minimum bond-separation filter. Rings connected by a single sp2-hybridised
-            bridging atom (imine, vinyl, enamine linkers) are also excluded, as those
-            represent conjugated systems rather than genuine stacking interactions.
-        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
